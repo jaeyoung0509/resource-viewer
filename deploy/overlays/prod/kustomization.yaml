@@ -1,0 +1,11 @@
+resources:
+  - ../../base
+
+patches:
+  - target:
+      kind: Service
+      name: hub-service
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: LoadBalancer

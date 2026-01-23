@@ -1,0 +1,4 @@
+resources:
+  - redis.yaml
+  - agent.yaml
+  - hub.yaml

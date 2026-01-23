@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-hub
+  template:
+    metadata:
+      labels:
+        app: resource-hub
+    spec:
+      containers:
+        - name: hub
+          image: resource-checker/hub:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8443
+          env:
+            - name: REDIS_ADDR
+              value: redis-service:6379
+            - name: REDIS_PATTERN
+              value: metrics:*
+            - name: WS_PATH
+              value: /ws
+            - name: HTTPS_ADDR
+              value: :8443
+            - name: TLS_CERT_PATH
+              value: /tls/tls.crt
+            - name: TLS_KEY_PATH
+              value: /tls/tls.key
+            - name: STATIC_DIR
+              value: /app/web
+          volumeMounts:
+            - name: hub-tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: hub-tls
+          secret:
+            secretName: hub-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hub-service
+spec:
+  selector:
+    app: resource-hub
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+  type: ClusterIP

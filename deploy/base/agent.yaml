@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: resource-agent
+spec:
+  selector:
+    matchLabels:
+      app: resource-agent
+  template:
+    metadata:
+      labels:
+        app: resource-agent
+    spec:
+      containers:
+        - name: agent
+          image: resource-checker/agent:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REDIS_ADDR
+              value: redis-service:6379
+            - name: HOST_PROC
+              value: /host/proc
+            - name: SCRAPE_INTERVAL
+              value: 1s
+            - name: CHANNEL_PREFIX
+              value: metrics
+            - name: DISK_PATH
+              value: /
+          volumeMounts:
+            - name: host-proc
+              mountPath: /host/proc
+              readOnly: true
+      volumes:
+        - name: host-proc
+          hostPath:
+            path: /proc
+            type: Directory

@@ -1,0 +1,24 @@
+resources:
+  - ../../base
+
+secretGenerator:
+  - name: hub-tls
+    files:
+      - tls/tls.crt
+      - tls/tls.key
+    type: kubernetes.io/tls
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - target:
+      kind: Service
+      name: hub-service
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30443
