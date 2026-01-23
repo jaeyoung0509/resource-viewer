@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -110,21 +111,12 @@ func splitList(val string) []string {
 		return nil
 	}
 	raw := make([]string, 0)
-	start := 0
-	for i := 0; i <= len(val); i++ {
-		if i == len(val) || val[i] == ',' {
-			item := val[start:i]
-			for len(item) > 0 && item[0] == ' ' {
-				item = item[1:]
-			}
-			for len(item) > 0 && item[len(item)-1] == ' ' {
-				item = item[:len(item)-1]
-			}
-			if item != "" {
-				raw = append(raw, item)
-			}
-			start = i + 1
+	for _, item := range strings.Split(val, ",") {
+		trimmed := strings.TrimSpace(item)
+		if trimmed == "" {
+			continue
 		}
+		raw = append(raw, trimmed)
 	}
 	return raw
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"sort"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/jaeyoung050/resource-checker/internal/config"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -27,6 +29,7 @@ type scaleTarget struct {
 	Name              string `json:"name"`
 	Replicas          int32  `json:"replicas"`
 	AvailableReplicas int32  `json:"availableReplicas"`
+	Error             string `json:"error,omitempty"`
 }
 
 type scaleResponse struct {
@@ -44,7 +47,7 @@ func newScaler(cfg config.HubConfig) (*scaler, error) {
 		return nil, nil
 	}
 	if len(cfg.ScaleTargets) == 0 {
-		return nil, errors.New("SCALE_TARGETS is empty")
+		return nil, nil
 	}
 
 	restCfg, err := loadKubeConfig()
@@ -96,8 +99,11 @@ func (s *scaler) handleTargets(w http.ResponseWriter, r *http.Request) {
 	for _, name := range names {
 		deployment, err := s.client.AppsV1().Deployments(s.namespace).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
-			writeJSONError(w, http.StatusBadGateway, err)
-			return
+			targets = append(targets, scaleTarget{
+				Name:  name,
+				Error: err.Error(),
+			})
+			continue
 		}
 		replicas := int32(0)
 		if deployment.Spec.Replicas != nil {
@@ -138,14 +144,14 @@ func (s *scaler) handleScale(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	deployment, err := s.client.AppsV1().Deployments(s.namespace).Get(ctx, req.Name, metav1.GetOptions{})
-	if err != nil {
-		writeJSONError(w, http.StatusBadGateway, err)
-		return
-	}
-
-	deployment.Spec.Replicas = &req.Replicas
-	updated, err := s.client.AppsV1().Deployments(s.namespace).Update(ctx, deployment, metav1.UpdateOptions{})
+	patch := fmt.Sprintf(`{"spec":{"replicas":%d}}`, req.Replicas)
+	updated, err := s.client.AppsV1().Deployments(s.namespace).Patch(
+		ctx,
+		req.Name,
+		types.StrategicMergePatchType,
+		[]byte(patch),
+		metav1.PatchOptions{},
+	)
 	if err != nil {
 		writeJSONError(w, http.StatusBadGateway, err)
 		return
