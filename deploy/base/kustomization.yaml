@@ -2,3 +2,4 @@ resources:
   - redis.yaml
   - agent.yaml
   - hub.yaml
+  - hub-rbac.yaml

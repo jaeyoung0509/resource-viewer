@@ -21,8 +21,8 @@ type client struct {
 }
 
 type Hub struct {
-	mu      sync.RWMutex
-	clients map[*client]struct{}
+	mu       sync.RWMutex
+	clients  map[*client]struct{}
 	upgrader websocket.Upgrader
 }
 
@@ -54,9 +54,17 @@ func Run(ctx context.Context, cfg config.HubConfig) error {
 	defer pubsub.Close()
 
 	hub := New()
+	scaleAPI, err := newScaler(cfg)
+	if err != nil {
+		return err
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", health.Handler)
+	if scaleAPI != nil {
+		mux.HandleFunc("/api/targets", scaleAPI.handleTargets)
+		mux.HandleFunc("/api/scale", scaleAPI.handleScale)
+	}
 	mux.Handle(cfg.WSPath, http.HandlerFunc(hub.handleWS))
 	mux.Handle("/", http.FileServer(http.Dir(cfg.StaticDir)))
 

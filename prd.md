@@ -29,7 +29,7 @@ PRD: K8s 기반 분산 리소스 모니터링 시스템 (Web-htop)
 - Node Agent (DaemonSet): 각 노드에서 /proc 데이터를 읽어 Redis로 전송.
 - Redis (StatefulSet/Deployment): Pub/Sub 브로커.
 - Hub Server (Deployment): Redis 구독 후 WebSocket으로 브라우저에 브로드캐스트.
-- Frontend (Static): Hub Server에서 제공되는 정적 HTML/JS 대시보드.
+- Frontend (React): Hub Server에서 제공되는 정적 빌드 대시보드.
 
 3.2 데이터 흐름
 1) Agent가 노드의 리소스 스냅샷을 JSON으로 직렬화.
@@ -71,10 +71,11 @@ PRD: K8s 기반 분산 리소스 모니터링 시스템 (Web-htop)
   - Redis 메시지를 수신 즉시 모든 WebSocket 클라이언트에 WriteJSON.
 
 4.4 Frontend (Dashboard)
-- 형태: Hub Server가 제공하는 정적 HTML(`index.html`).
+- 형태: Hub Server가 제공하는 React 정적 빌드.
 - 기능:
   - `ws://localhost:8080/ws` 연결.
   - 노드 이름별로 데이터 분기하여 화면 표시.
+  - Hub 및 Redis Deployment 스케일링 UI 제공.
   - (선택) Chart.js로 실시간 라인 그래프 표시.
 
 5. 비기능 요구사항

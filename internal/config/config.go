@@ -26,6 +26,10 @@ type HubConfig struct {
 	TLSCertPath   string
 	TLSKeyPath    string
 	StaticDir     string
+	Namespace     string
+	ScaleTargets  []string
+	MaxReplicas   int32
+	ScaleEnabled  bool
 }
 
 func LoadAgentConfig() AgentConfig {
@@ -51,6 +55,10 @@ func LoadHubConfig() HubConfig {
 		TLSCertPath:   getenv("TLS_CERT_PATH", "/tls/tls.crt"),
 		TLSKeyPath:    getenv("TLS_KEY_PATH", "/tls/tls.key"),
 		StaticDir:     getenv("STATIC_DIR", "web"),
+		Namespace:     getenv("NAMESPACE", "default"),
+		ScaleTargets:  splitList(getenv("SCALE_TARGETS", "resource-hub,redis")),
+		MaxReplicas:   int32(getenvInt("SCALE_MAX", 5)),
+		ScaleEnabled:  getenvBool("SCALE_ENABLED", true),
 	}
 }
 
@@ -83,4 +91,40 @@ func getenvDuration(key string, def time.Duration) time.Duration {
 		return def
 	}
 	return parsed
+}
+
+func getenvBool(key string, def bool) bool {
+	val := os.Getenv(key)
+	if val == "" {
+		return def
+	}
+	parsed, err := strconv.ParseBool(val)
+	if err != nil {
+		return def
+	}
+	return parsed
+}
+
+func splitList(val string) []string {
+	if val == "" {
+		return nil
+	}
+	raw := make([]string, 0)
+	start := 0
+	for i := 0; i <= len(val); i++ {
+		if i == len(val) || val[i] == ',' {
+			item := val[start:i]
+			for len(item) > 0 && item[0] == ' ' {
+				item = item[1:]
+			}
+			for len(item) > 0 && item[len(item)-1] == ' ' {
+				item = item[:len(item)-1]
+			}
+			if item != "" {
+				raw = append(raw, item)
+			}
+			start = i + 1
+		}
+	}
+	return raw
 }
