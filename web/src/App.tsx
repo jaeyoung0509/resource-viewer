@@ -2,16 +2,37 @@ import { useEffect, useMemo, useState } from 'react'
 
 const DEFAULT_MAX = 5
 
-function formatPercent(value) {
+type NodeMetric = {
+  node: string
+  cpu: number
+  memory: number
+  disk: number
+  timestamp: number
+}
+
+type ScaleTarget = {
+  name: string
+  replicas: number
+  availableReplicas: number
+}
+
+type TargetsResponse = {
+  maxReplicas: number
+  targets: ScaleTarget[]
+}
+
+type WsStatus = 'connecting' | 'online' | 'offline'
+
+function formatPercent(value: number) {
   if (Number.isNaN(value)) return '-'
   return `${value.toFixed(1)}%`
 }
 
 export default function App() {
-  const [nodes, setNodes] = useState({})
-  const [targets, setTargets] = useState([])
+  const [nodes, setNodes] = useState<Record<string, NodeMetric>>({})
+  const [targets, setTargets] = useState<ScaleTarget[]>([])
   const [maxReplicas, setMaxReplicas] = useState(DEFAULT_MAX)
-  const [wsStatus, setWsStatus] = useState('connecting')
+  const [wsStatus, setWsStatus] = useState<WsStatus>('connecting')
 
   const nodeList = useMemo(() => Object.values(nodes), [nodes])
 
@@ -25,7 +46,7 @@ export default function App() {
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data)
+        const data: NodeMetric = JSON.parse(event.data)
         if (!data || !data.node) return
         setNodes((prev) => ({ ...prev, [data.node]: data }))
       } catch (err) {
@@ -42,7 +63,7 @@ export default function App() {
       try {
         const res = await fetch('/api/targets')
         if (!res.ok) return
-        const data = await res.json()
+        const data = (await res.json()) as TargetsResponse
         if (!isMounted) return
         setTargets(data.targets || [])
         setMaxReplicas(data.maxReplicas || DEFAULT_MAX)
@@ -59,7 +80,7 @@ export default function App() {
     }
   }, [])
 
-  async function scale(name, replicas) {
+  async function scale(name: string, replicas: number) {
     try {
       await fetch('/api/scale', {
         method: 'POST',

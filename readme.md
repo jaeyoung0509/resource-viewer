@@ -12,7 +12,7 @@ Learning Goals:
 - Node Agent (DaemonSet): Go app per node. Reads host /proc and publishes to Redis.
 - Redis (Broker): Pub/Sub relay.
 - Hub Server (Deployment): Subscribes to Redis and pushes to WebSocket clients.
-- Frontend: React dashboard served by Hub.
+- Frontend: React (TypeScript) dashboard served by Hub.
 
 3. Local Environment (Orbstack)
 Required:
@@ -38,7 +38,7 @@ Hub:
 - HTTPS/WSS with self-signed TLS (local).
 
 Frontend:
-- React UI connects to wss://<host>/ws.
+- React + TypeScript UI connects to wss://<host>/ws.
 - Shows node metrics and allows scaling selected deployments.
 
 5. Quick Start (Local K8s)
