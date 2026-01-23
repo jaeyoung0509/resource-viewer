@@ -18,17 +18,22 @@ if [[ -f "$CERT" || -f "$KEY" ]]; then
   fi
 fi
 
-if ! command -v openssl >/dev/null 2>&1; then
-  echo "openssl not found in PATH" >&2
-  exit 1
-fi
-
 mkdir -p "$TLS_DIR"
 
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout "$KEY" \
-  -out "$CERT" \
-  -subj "/CN=resource-checker.local" \
-  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+if command -v mkcert >/dev/null 2>&1; then
+  mkcert -install >/dev/null 2>&1 || true
+  mkcert -cert-file "$CERT" -key-file "$KEY" \
+    localhost 127.0.0.1 resource-checker.local
+else
+  if ! command -v openssl >/dev/null 2>&1; then
+    echo "openssl not found in PATH" >&2
+    exit 1
+  fi
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout "$KEY" \
+    -out "$CERT" \
+    -subj "/CN=resource-checker.local" \
+    -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+fi
 
 echo "Generated $CERT and $KEY"

@@ -42,7 +42,7 @@ Frontend:
 - Renders node metrics in real time.
 
 5. Quick Start (Local K8s)
-1) Generate TLS for Hub:
+1) Generate TLS for Hub (mkcert preferred):
    ./scripts/gen-tls-secret.sh
 2) Build images:
    make docker-agent
