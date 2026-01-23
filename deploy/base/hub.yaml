@@ -12,6 +12,7 @@ spec:
       labels:
         app: resource-hub
     spec:
+      serviceAccountName: hub-sa
       containers:
         - name: hub
           image: resource-checker/hub:dev
@@ -33,6 +34,16 @@ spec:
               value: /tls/tls.key
             - name: STATIC_DIR
               value: /app/web
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SCALE_TARGETS
+              value: resource-hub,redis
+            - name: SCALE_MAX
+              value: "5"
+            - name: SCALE_ENABLED
+              value: "true"
           volumeMounts:
             - name: hub-tls
               mountPath: /tls

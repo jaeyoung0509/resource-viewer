@@ -12,7 +12,7 @@ Learning Goals:
 - Node Agent (DaemonSet): Go app per node. Reads host /proc and publishes to Redis.
 - Redis (Broker): Pub/Sub relay.
 - Hub Server (Deployment): Subscribes to Redis and pushes to WebSocket clients.
-- Frontend: Static HTML/JS dashboard served by Hub.
+- Frontend: React (TypeScript) dashboard served by Hub.
 
 3. Local Environment (Orbstack)
 Required:
@@ -38,8 +38,8 @@ Hub:
 - HTTPS/WSS with self-signed TLS (local).
 
 Frontend:
-- Connects to wss://<host>/ws.
-- Renders node metrics in real time.
+- React + TypeScript UI connects to wss://<host>/ws.
+- Shows node metrics and allows scaling selected deployments.
 
 5. Quick Start (Local K8s)
 1) Generate TLS for Hub (mkcert preferred):
@@ -51,6 +51,13 @@ Frontend:
    make k8s-apply
 4) Open dashboard:
    https://localhost:30443
+
+Scaling targets (default):
+- resource-hub
+- redis
+
+Notes:
+- Hub image build runs Vite to bundle the React UI.
 
 6. Phases
 Phase 1: Docker build for agent/hub.

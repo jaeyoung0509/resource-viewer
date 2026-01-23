@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -26,6 +27,10 @@ type HubConfig struct {
 	TLSCertPath   string
 	TLSKeyPath    string
 	StaticDir     string
+	Namespace     string
+	ScaleTargets  []string
+	MaxReplicas   int32
+	ScaleEnabled  bool
 }
 
 func LoadAgentConfig() AgentConfig {
@@ -51,6 +56,10 @@ func LoadHubConfig() HubConfig {
 		TLSCertPath:   getenv("TLS_CERT_PATH", "/tls/tls.crt"),
 		TLSKeyPath:    getenv("TLS_KEY_PATH", "/tls/tls.key"),
 		StaticDir:     getenv("STATIC_DIR", "web"),
+		Namespace:     getenv("NAMESPACE", "default"),
+		ScaleTargets:  splitList(getenv("SCALE_TARGETS", "resource-hub,redis")),
+		MaxReplicas:   int32(getenvInt("SCALE_MAX", 5)),
+		ScaleEnabled:  getenvBool("SCALE_ENABLED", true),
 	}
 }
 
@@ -83,4 +92,31 @@ func getenvDuration(key string, def time.Duration) time.Duration {
 		return def
 	}
 	return parsed
+}
+
+func getenvBool(key string, def bool) bool {
+	val := os.Getenv(key)
+	if val == "" {
+		return def
+	}
+	parsed, err := strconv.ParseBool(val)
+	if err != nil {
+		return def
+	}
+	return parsed
+}
+
+func splitList(val string) []string {
+	if val == "" {
+		return nil
+	}
+	raw := make([]string, 0)
+	for _, item := range strings.Split(val, ",") {
+		trimmed := strings.TrimSpace(item)
+		if trimmed == "" {
+			continue
+		}
+		raw = append(raw, trimmed)
+	}
+	return raw
 }
