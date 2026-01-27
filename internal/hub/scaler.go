@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"sort"
 	"time"
 
@@ -14,8 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type scaler struct {
@@ -71,13 +68,6 @@ func newScaler(cfg config.HubConfig) (*scaler, error) {
 		maxReplicas: cfg.MaxReplicas,
 		allowed:     allowed,
 	}, nil
-}
-
-func loadKubeConfig() (*rest.Config, error) {
-	if kubeconfig := os.Getenv("KUBECONFIG"); kubeconfig != "" {
-		return clientcmd.BuildConfigFromFlags("", kubeconfig)
-	}
-	return rest.InClusterConfig()
 }
 
 func (s *scaler) handleTargets(w http.ResponseWriter, r *http.Request) {

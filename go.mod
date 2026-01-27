@@ -8,6 +8,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
+	k8s.io/metrics v0.35.0
 )
 
 require (

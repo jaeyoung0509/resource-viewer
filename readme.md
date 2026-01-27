@@ -58,6 +58,7 @@ Scaling targets (default):
 
 Notes:
 - Hub image build runs Vite to bundle the React UI.
+- Pod/Deployment metrics require metrics-server in the cluster.
 
 6. Phases
 Phase 1: Docker build for agent/hub.

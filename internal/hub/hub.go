@@ -58,12 +58,20 @@ func Run(ctx context.Context, cfg config.HubConfig) error {
 	if err != nil {
 		return err
 	}
+	metricsAPI, err := newMetricsAPI(cfg)
+	if err != nil {
+		return err
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", health.Handler)
 	if scaleAPI != nil {
 		mux.HandleFunc("/api/targets", scaleAPI.handleTargets)
 		mux.HandleFunc("/api/scale", scaleAPI.handleScale)
+	}
+	if metricsAPI != nil {
+		mux.HandleFunc("/api/metrics/pods", metricsAPI.handlePodMetrics)
+		mux.HandleFunc("/api/metrics/deployments", metricsAPI.handleDeploymentMetrics)
 	}
 	mux.Handle(cfg.WSPath, http.HandlerFunc(hub.handleWS))
 	mux.Handle("/", http.FileServer(http.Dir(cfg.StaticDir)))
