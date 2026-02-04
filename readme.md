@@ -60,6 +60,14 @@ Notes:
 - Hub image build runs Vite to bundle the React UI.
 - Pod/Deployment metrics require metrics-server in the cluster.
 
+OTel + InfluxDB (optional):
+1) Build trace service:
+   make docker-trace
+2) Deploy base resources (includes InfluxDB + OTel Collector):
+   make k8s-apply
+3) Generate a trace:
+   curl http://trace-svc:8081/api/trace
+
 6. Phases
 Phase 1: Docker build for agent/hub.
 Phase 2: K8s deploy on Orbstack with Kustomize.

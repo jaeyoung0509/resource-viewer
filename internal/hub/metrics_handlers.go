@@ -12,7 +12,11 @@ func (m *metricsAPI) handlePodMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, span := tracer.Start(r.Context(), "hub.metrics.pods")
+	defer span.End()
+	apiRequests.Add(ctx, 1, apiAttrs("/api/metrics/pods")...)
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	items, err := m.collectPodMetrics(ctx)
@@ -30,7 +34,11 @@ func (m *metricsAPI) handleDeploymentMetrics(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, span := tracer.Start(r.Context(), "hub.metrics.deployments")
+	defer span.End()
+	apiRequests.Add(ctx, 1, apiAttrs("/api/metrics/deployments")...)
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	items, err := m.collectDeploymentMetrics(ctx)

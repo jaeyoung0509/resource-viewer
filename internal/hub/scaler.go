@@ -76,7 +76,11 @@ func (s *scaler) handleTargets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, span := tracer.Start(r.Context(), "hub.scale.targets")
+	defer span.End()
+	apiRequests.Add(ctx, 1, apiAttrs("/api/targets")...)
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	names := make([]string, 0, len(s.allowed))
@@ -115,6 +119,10 @@ func (s *scaler) handleScale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx, span := tracer.Start(r.Context(), "hub.scale.update")
+	defer span.End()
+	apiRequests.Add(ctx, 1, apiAttrs("/api/scale")...)
+
 	var req scaleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSONError(w, http.StatusBadRequest, err)
@@ -131,7 +139,7 @@ func (s *scaler) handleScale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	patch := fmt.Sprintf(`{"spec":{"replicas":%d}}`, req.Replicas)

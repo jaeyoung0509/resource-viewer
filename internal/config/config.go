@@ -33,6 +33,10 @@ type HubConfig struct {
 	ScaleEnabled  bool
 }
 
+type TraceSvcConfig struct {
+	HTTPAddr string
+}
+
 func LoadAgentConfig() AgentConfig {
 	return AgentConfig{
 		RedisAddr:     getenv("REDIS_ADDR", "redis-service:6379"),
@@ -60,6 +64,12 @@ func LoadHubConfig() HubConfig {
 		ScaleTargets:  splitList(getenv("SCALE_TARGETS", "resource-hub,redis")),
 		MaxReplicas:   int32(getenvInt("SCALE_MAX", 5)),
 		ScaleEnabled:  getenvBool("SCALE_ENABLED", true),
+	}
+}
+
+func LoadTraceSvcConfig() TraceSvcConfig {
+	return TraceSvcConfig{
+		HTTPAddr: getenv("HTTP_ADDR", ":8081"),
 	}
 }
 

@@ -113,6 +113,10 @@ func (h *Hub) handleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx, span := tracer.Start(r.Context(), "hub.ws")
+	wsConnections.Add(ctx, 1)
+	span.End()
+
 	clientConn := &client{conn: conn}
 	h.add(clientConn)
 	defer h.remove(clientConn)
@@ -125,9 +129,13 @@ func (h *Hub) handleWS(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Hub) broadcast(payload []byte) {
+	ctx, span := tracer.Start(context.Background(), "hub.broadcast")
+	defer span.End()
+
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
+	wsMessages.Add(ctx, int64(len(h.clients)))
 	for clientConn := range h.clients {
 		clientConn.mu.Lock()
 		_ = clientConn.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
