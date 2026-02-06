@@ -130,3 +130,11 @@ func splitList(val string) []string {
 	}
 	return raw
 }
+
+func EnvOrDefault(key, def string) string {
+	return getenv(key, def)
+}
+
+func EnvBoolOrDefault(key string, def bool) bool {
+	return getenvBool(key, def)
+}

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -20,8 +19,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	serviceName := getenv("SERVICE_NAME", "trace-svc")
-	shutdown, err := observability.Init(ctx, serviceName, os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+	serviceName := config.EnvOrDefault("SERVICE_NAME", "trace-svc")
+	otlpEndpoint := config.EnvOrDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+	otlpInsecure := config.EnvBoolOrDefault("OTEL_EXPORTER_OTLP_INSECURE", false)
+	shutdown, err := observability.Init(ctx, serviceName, otlpEndpoint, otlpInsecure)
 	if err != nil {
 		log.Fatalf("otel init failed: %v", err)
 	}
@@ -34,11 +35,4 @@ func main() {
 	if err := tracesvc.Run(ctx, cfg); err != nil {
 		log.Fatalf("trace-svc stopped: %v", err)
 	}
-}
-
-func getenv(key, def string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return def
 }

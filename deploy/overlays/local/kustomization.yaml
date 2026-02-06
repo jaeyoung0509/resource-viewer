@@ -7,6 +7,9 @@ secretGenerator:
       - tls/tls.crt
       - tls/tls.key
     type: kubernetes.io/tls
+  - name: influxdb-secret
+    envs:
+      - influxdb-secret.env
 
 generatorOptions:
   disableNameSuffixHash: true
@@ -22,3 +25,35 @@ patches:
       - op: add
         path: /spec/ports/0/nodePort
         value: 30443
+  - target:
+      kind: Deployment
+      name: resource-hub
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: resource-hub
+      spec:
+        template:
+          spec:
+            containers:
+              - name: hub
+                env:
+                  - name: OTEL_EXPORTER_OTLP_INSECURE
+                    value: "true"
+  - target:
+      kind: Deployment
+      name: trace-svc
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: trace-svc
+      spec:
+        template:
+          spec:
+            containers:
+              - name: trace-svc
+                env:
+                  - name: OTEL_EXPORTER_OTLP_INSECURE
+                    value: "true"

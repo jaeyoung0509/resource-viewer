@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -17,6 +18,10 @@ type traceResponse struct {
 }
 
 func Run(ctx context.Context, cfg config.TraceSvcConfig) error {
+	if err := initTelemetry(); err != nil {
+		return err
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", health.Handler)
 	mux.HandleFunc("/api/trace", handleTrace)
@@ -66,5 +71,7 @@ func handleTrace(w http.ResponseWriter, r *http.Request) {
 func writeJSON(w http.ResponseWriter, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
-	_ = encoder.Encode(payload)
+	if err := encoder.Encode(payload); err != nil {
+		log.Printf("failed to encode trace response: %v", err)
+	}
 }

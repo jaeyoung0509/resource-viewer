@@ -36,6 +36,10 @@ func New() *Hub {
 }
 
 func Run(ctx context.Context, cfg config.HubConfig) error {
+	if err := initTelemetry(); err != nil {
+		return err
+	}
+
 	if _, err := os.Stat(cfg.TLSCertPath); err != nil {
 		return err
 	}
@@ -114,8 +118,8 @@ func (h *Hub) handleWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, span := tracer.Start(r.Context(), "hub.ws")
+	defer span.End()
 	wsConnections.Add(ctx, 1)
-	span.End()
 
 	clientConn := &client{conn: conn}
 	h.add(clientConn)

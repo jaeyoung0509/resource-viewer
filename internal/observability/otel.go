@@ -13,7 +13,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func Init(ctx context.Context, serviceName, otlpEndpoint string) (func(context.Context) error, error) {
+func Init(ctx context.Context, serviceName, otlpEndpoint string, insecure bool) (func(context.Context) error, error) {
 	if otlpEndpoint == "" {
 		return func(context.Context) error { return nil }, nil
 	}
@@ -27,18 +27,24 @@ func Init(ctx context.Context, serviceName, otlpEndpoint string) (func(context.C
 		return nil, err
 	}
 
-	traceExp, err := otlptracegrpc.New(ctx,
+	traceOpts := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(otlpEndpoint),
-		otlptracegrpc.WithInsecure(),
-	)
+	}
+	if insecure {
+		traceOpts = append(traceOpts, otlptracegrpc.WithInsecure())
+	}
+	traceExp, err := otlptracegrpc.New(ctx, traceOpts...)
 	if err != nil {
 		return nil, err
 	}
 
-	metricExp, err := otlpmetricgrpc.New(ctx,
+	metricOpts := []otlpmetricgrpc.Option{
 		otlpmetricgrpc.WithEndpoint(otlpEndpoint),
-		otlpmetricgrpc.WithInsecure(),
-	)
+	}
+	if insecure {
+		metricOpts = append(metricOpts, otlpmetricgrpc.WithInsecure())
+	}
+	metricExp, err := otlpmetricgrpc.New(ctx, metricOpts...)
 	if err != nil {
 		_ = traceExp.Shutdown(ctx)
 		return nil, err
