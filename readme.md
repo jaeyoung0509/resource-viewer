@@ -44,12 +44,14 @@ Frontend:
 5. Quick Start (Local K8s)
 1) Generate TLS for Hub (mkcert preferred):
    ./scripts/gen-tls-secret.sh
-2) Build images:
+2) Create local InfluxDB secret file:
+   cp deploy/overlays/local/influxdb-secret.env.example deploy/overlays/local/influxdb-secret.env
+3) Build images:
    make docker-agent
    make docker-hub
-3) Deploy:
+4) Deploy:
    make k8s-apply
-4) Open dashboard:
+5) Open dashboard:
    https://localhost:30443
 
 Scaling targets (default):
@@ -59,6 +61,15 @@ Scaling targets (default):
 Notes:
 - Hub image build runs Vite to bundle the React UI.
 - Pod/Deployment metrics require metrics-server in the cluster.
+
+OTel + InfluxDB (optional):
+1) Build trace service:
+   make docker-trace
+2) Deploy base resources (includes InfluxDB + OTel Collector):
+   make k8s-apply
+3) Generate a trace:
+   kubectl port-forward svc/trace-svc 8081:8081
+   curl http://localhost:8081/api/trace
 
 6. Phases
 Phase 1: Docker build for agent/hub.

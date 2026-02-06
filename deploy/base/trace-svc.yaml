@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trace-svc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trace-svc
+  template:
+    metadata:
+      labels:
+        app: trace-svc
+    spec:
+      containers:
+        - name: trace-svc
+          image: resource-checker/trace-svc:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - name: HTTP_ADDR
+              value: :8081
+            - name: SERVICE_NAME
+              value: trace-svc
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: otel-collector:4317
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "false"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trace-svc
+spec:
+  selector:
+    app: trace-svc
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081

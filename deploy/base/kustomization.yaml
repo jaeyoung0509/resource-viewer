@@ -3,3 +3,6 @@ resources:
   - agent.yaml
   - hub.yaml
   - hub-rbac.yaml
+  - trace-svc.yaml
+  - influxdb.yaml
+  - otel-collector.yaml

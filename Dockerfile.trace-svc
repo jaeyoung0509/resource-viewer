@@ -1,0 +1,21 @@
+FROM golang:1.25.4-alpine AS build
+ARG TARGETARCH
+WORKDIR /src
+RUN apk add --no-cache ca-certificates
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd/trace-svc ./cmd/trace-svc
+COPY internal/config ./internal/config
+COPY internal/observability ./internal/observability
+COPY internal/tracesvc ./internal/tracesvc
+COPY pkg/health ./pkg/health
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH:-amd64} \
+  go build -o /out/trace-svc ./cmd/trace-svc
+
+FROM alpine:3.20
+WORKDIR /app
+RUN apk add --no-cache ca-certificates
+COPY --from=build /out/trace-svc /app/trace-svc
+USER 65532:65532
+EXPOSE 8081
+ENTRYPOINT ["/app/trace-svc"]

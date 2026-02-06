@@ -1,8 +1,9 @@
 IMAGE_AGENT ?= resource-checker/agent:dev
 IMAGE_HUB ?= resource-checker/hub:dev
+IMAGE_TRACE ?= resource-checker/trace-svc:dev
 PLATFORM ?= linux/arm64
 
-.PHONY: tls docker-agent docker-hub k8s-apply k8s-delete
+.PHONY: tls docker-agent docker-hub docker-trace k8s-apply k8s-delete
 
 tls:
 	./scripts/gen-tls-secret.sh
@@ -12,6 +13,9 @@ docker-agent:
 
 docker-hub:
 	docker build --platform $(PLATFORM) -f Dockerfile.hub -t $(IMAGE_HUB) .
+
+docker-trace:
+	docker build --platform $(PLATFORM) -f Dockerfile.trace-svc -t $(IMAGE_TRACE) .
 
 k8s-apply:
 	kubectl apply -k deploy/overlays/local

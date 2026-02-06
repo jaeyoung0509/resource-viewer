@@ -44,6 +44,12 @@ spec:
               value: "5"
             - name: SCALE_ENABLED
               value: "true"
+            - name: SERVICE_NAME
+              value: resource-hub
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: otel-collector:4317
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "false"
           volumeMounts:
             - name: hub-tls
               mountPath: /tls

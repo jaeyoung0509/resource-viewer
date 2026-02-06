@@ -8,18 +8,18 @@ import (
 	"time"
 
 	"github.com/jaeyoung050/resource-checker/internal/config"
-	"github.com/jaeyoung050/resource-checker/internal/hub"
 	"github.com/jaeyoung050/resource-checker/internal/observability"
+	"github.com/jaeyoung050/resource-checker/internal/tracesvc"
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	cfg := config.LoadHubConfig()
+	cfg := config.LoadTraceSvcConfig()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	serviceName := config.EnvOrDefault("SERVICE_NAME", "resource-hub")
+	serviceName := config.EnvOrDefault("SERVICE_NAME", "trace-svc")
 	otlpEndpoint := config.EnvOrDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "")
 	otlpInsecure := config.EnvBoolOrDefault("OTEL_EXPORTER_OTLP_INSECURE", false)
 	shutdown, err := observability.Init(ctx, serviceName, otlpEndpoint, otlpInsecure)
@@ -32,7 +32,7 @@ func main() {
 		_ = shutdown(shutdownCtx)
 	}()
 
-	if err := hub.Run(ctx, cfg); err != nil {
-		log.Fatalf("hub stopped: %v", err)
+	if err := tracesvc.Run(ctx, cfg); err != nil {
+		log.Fatalf("trace-svc stopped: %v", err)
 	}
 }
